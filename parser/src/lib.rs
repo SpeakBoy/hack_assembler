@@ -32,7 +32,6 @@ impl Parser {
                 } else {
                     instruction.push_str(&self.decode_c_instruction(line));
                     println!("{instruction}");
-                    println!("{line}");
                 }
             }
         }
@@ -162,6 +161,22 @@ impl Parser {
     }
 
     fn decode_jump(&mut self, jump: &str) -> String {
-        jump.to_string()
+        let mut output = String::new();
+        if jump == "JMP" || jump.contains('L') || jump.contains("NE") {
+            output.push('1');
+        } else {
+            output.push('0');
+        }
+        if jump == "JMP" || (jump.contains('E') && !jump.contains("NE")) {
+            output.push('1');
+        } else {
+            output.push('0');
+        }
+        if jump == "JMP" || jump.contains('G') || jump.contains("NE") {
+            output.push('1');
+        } else {
+            output.push('0');
+        }
+        output
     }
 }
