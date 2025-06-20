@@ -27,9 +27,11 @@ impl Parser {
             if !blank && !comment {
                 let first_char = line.chars().nth(0).expect("Out of range");
                 if first_char == '@' {
-                    instruction.push_str(&(self.decode_a_instruction(line)));
+                    instruction.push_str(&self.decode_a_instruction(line));
                     println!("{instruction}");
                 } else {
+                    instruction.push_str(&self.decode_c_instruction(line));
+                    println!("{instruction}");
                     println!("{line}");
                 }
             }
@@ -65,8 +67,35 @@ impl Parser {
     }
 
     fn decode_c_instruction(&mut self, line: &str) -> String {
-        let mut first_digits = String::from("111");
+        let first_digits = String::from("111");
+        let dest = if line.contains('=') {
+            let split_at_equals: Vec<&str> = line.split('=').collect();
+            split_at_equals[0]
+        } else {
+            "null"
+        };
+        let dest = self.decode_dest(dest);
+        println!("{dest}");
+        first_digits + &dest
+    }
 
-        first_digits
+    fn decode_dest(&mut self, dest: &str) -> String {
+        let mut output = String::new();
+        if dest.contains('A') {
+            output.push('1');
+        } else {
+            output.push('0');
+        }
+        if dest.contains('M') {
+            output.push('1');
+        } else {
+            output.push('0');
+        }
+        if dest.contains('D') {
+            output.push('1');
+        } else {
+            output.push('0');
+        }
+        output
     }
 }
