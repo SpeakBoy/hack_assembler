@@ -43,19 +43,15 @@ impl Parser {
             fs::read_to_string(&self.file_path).expect("Should have been able to read the file");
 
         self.translate_labels(&contents);
-
-        for (key, value) in &self.symbol_table {
-            println!("{}: {}", key, value);
-        }
-
-        return contents;
+        self.translate_variables(&contents);
 
         let mut output = String::new();
 
         let lines = contents.lines();
 
         for line in lines {
-            let blank = line.trim().is_empty();
+            let line = line.trim();
+            let blank = line.is_empty();
             let comment = line.contains("//");
             let mut instruction = String::new();
             if !blank && !comment {
@@ -78,7 +74,8 @@ impl Parser {
 
         let mut line_count = 0;
         for line in lines {
-            let blank = line.trim().is_empty();
+            let line = line.trim();
+            let blank = line.is_empty();
             let comment = line.contains('/');
             if !blank && !comment {
                 if line.contains('(') {
@@ -96,10 +93,41 @@ impl Parser {
         }
     }
 
+    fn translate_variables(&mut self, contents: &str) {
+        let lines = contents.lines();
+
+        let mut variable_num = 16;
+        for line in lines {
+            let line = line.trim();
+            let blank = line.is_empty();
+            let comment = line.contains('/');
+            if !blank && !comment {
+                let first_char = line.chars().nth(0).expect("Out of range");
+                let str_len = line.len();
+                if first_char == '@' {
+                    let variable: String = line[1..str_len].parse().unwrap();
+                    if !self.symbol_table.contains_key(&variable) {
+                        self.symbol_table.insert(variable, variable_num.to_string());
+                        variable_num += 1;
+                    }
+                }
+            }
+        }
+    }
+
     fn decode_a_instruction(&mut self, line: &str) -> String {
         let first_digit = String::from("0");
         let str_len = line.len();
-        let the_rest_dec: u16 = line[1..str_len].parse().unwrap();
+        let the_rest_dec: u16 = if self.symbol_table.contains_key(&line[1..str_len]) {
+            self.symbol_table
+                .get(&line[1..str_len])
+                .unwrap()
+                .to_string()
+        } else {
+            line[1..str_len].to_string()
+        }
+        .parse()
+        .unwrap();
         let the_rest_bin = self.decimal_to_binary(the_rest_dec);
         first_digit + &the_rest_bin
     }
