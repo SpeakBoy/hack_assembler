@@ -14,9 +14,11 @@ impl Parser {
         }
     }
 
-    pub fn read_file(&mut self) {
+    pub fn assemble(&mut self) -> String {
         let contents =
             fs::read_to_string(&self.file_path).expect("Should have been able to read the file");
+
+        let mut output = String::new();
 
         let lines = contents.lines();
 
@@ -28,13 +30,15 @@ impl Parser {
                 let first_char = line.chars().nth(0).expect("Out of range");
                 if first_char == '@' {
                     instruction.push_str(&self.decode_a_instruction(line));
-                    println!("{instruction}");
                 } else {
                     instruction.push_str(&self.decode_c_instruction(line));
-                    println!("{instruction}");
                 }
+                instruction.push('\n');
+                output.push_str(&instruction);
             }
         }
+        output = output.trim().to_string();
+        output
     }
 
     fn decode_a_instruction(&mut self, line: &str) -> String {
@@ -111,12 +115,12 @@ impl Parser {
         } else {
             output.push('0');
         }
-        if dest.contains('M') {
+        if dest.contains('D') {
             output.push('1');
         } else {
             output.push('0');
         }
-        if dest.contains('D') {
+        if dest.contains('M') {
             output.push('1');
         } else {
             output.push('0');
@@ -151,7 +155,7 @@ impl Parser {
             "M-1" => "1110010",
             "D+M" => "1000010",
             "D-M" => "1010011",
-            "A-M" => "1000111",
+            "M-D" => "1000111",
             "D&M" => "1000000",
             "D|M" => "1010101",
             _ => "0000000",
