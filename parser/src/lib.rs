@@ -10,7 +10,31 @@ impl Parser {
     pub fn new(file_path: String) -> Parser {
         Parser {
             file_path,
-            symbol_table: HashMap::new(),
+            symbol_table: HashMap::from([
+                (String::from("R0"), String::from("0")),
+                (String::from("R1"), String::from("1")),
+                (String::from("R2"), String::from("2")),
+                (String::from("R3"), String::from("3")),
+                (String::from("R4"), String::from("4")),
+                (String::from("R5"), String::from("5")),
+                (String::from("R6"), String::from("6")),
+                (String::from("R7"), String::from("7")),
+                (String::from("R8"), String::from("8")),
+                (String::from("R9"), String::from("9")),
+                (String::from("R10"), String::from("10")),
+                (String::from("R11"), String::from("11")),
+                (String::from("R12"), String::from("12")),
+                (String::from("R13"), String::from("13")),
+                (String::from("R14"), String::from("14")),
+                (String::from("R15"), String::from("15")),
+                (String::from("SCREEN"), String::from("16384")),
+                (String::from("KBD"), String::from("24576")),
+                (String::from("SP"), String::from("0")),
+                (String::from("ARG"), String::from("1")),
+                (String::from("LCL"), String::from("2")),
+                (String::from("THIS"), String::from("3")),
+                (String::from("THAT"), String::from("4")),
+            ]),
         }
     }
 
@@ -18,13 +42,21 @@ impl Parser {
         let contents =
             fs::read_to_string(&self.file_path).expect("Should have been able to read the file");
 
+        self.translate_labels(&contents);
+
+        for (key, value) in &self.symbol_table {
+            println!("{}: {}", key, value);
+        }
+
+        return contents;
+
         let mut output = String::new();
 
         let lines = contents.lines();
 
         for line in lines {
             let blank = line.trim().is_empty();
-            let comment = line.contains('/');
+            let comment = line.contains("//");
             let mut instruction = String::new();
             if !blank && !comment {
                 let first_char = line.chars().nth(0).expect("Out of range");
@@ -39,6 +71,29 @@ impl Parser {
         }
         output = output.trim().to_string();
         output
+    }
+
+    fn translate_labels(&mut self, contents: &str) {
+        let lines = contents.lines();
+
+        let mut line_count = 0;
+        for line in lines {
+            let blank = line.trim().is_empty();
+            let comment = line.contains('/');
+            if !blank && !comment {
+                if line.contains('(') {
+                    let split_start_parentheses: Vec<&str> = line.split('(').collect();
+                    let split_end_parentheses: Vec<&str> =
+                        split_start_parentheses[1].split(')').collect();
+                    let label = split_end_parentheses[0];
+                    self.symbol_table
+                        .entry(label.to_string())
+                        .or_insert(line_count.to_string());
+                } else {
+                    line_count += 1;
+                }
+            }
+        }
     }
 
     fn decode_a_instruction(&mut self, line: &str) -> String {
