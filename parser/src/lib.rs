@@ -106,7 +106,9 @@ impl Parser {
                 let str_len = line.len();
                 if first_char == '@' {
                     let variable: String = line[1..str_len].parse().unwrap();
-                    if !self.symbol_table.contains_key(&variable) {
+                    if !variable.parse::<u16>().is_ok()
+                        && !self.symbol_table.contains_key(&variable)
+                    {
                         self.symbol_table.insert(variable, variable_num.to_string());
                         variable_num += 1;
                     }
