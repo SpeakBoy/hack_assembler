@@ -30,8 +30,8 @@ impl Parser {
                 (String::from("SCREEN"), String::from("16384")),
                 (String::from("KBD"), String::from("24576")),
                 (String::from("SP"), String::from("0")),
-                (String::from("ARG"), String::from("1")),
-                (String::from("LCL"), String::from("2")),
+                (String::from("LCL"), String::from("1")),
+                (String::from("ARG"), String::from("2")),
                 (String::from("THIS"), String::from("3")),
                 (String::from("THAT"), String::from("4")),
             ]),
@@ -53,8 +53,9 @@ impl Parser {
             let line = line.trim();
             let blank = line.is_empty();
             let comment = line.contains("//");
+            let label = line.contains('(');
             let mut instruction = String::new();
-            if !blank && !comment {
+            if !blank && !comment && !label {
                 let first_char = line.chars().nth(0).expect("Out of range");
                 if first_char == '@' {
                     instruction.push_str(&self.decode_a_instruction(line));
